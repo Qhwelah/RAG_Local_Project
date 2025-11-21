@@ -45,6 +45,6 @@ except Exception as e:
 
 
 # Keep container running (Docker container exists otherwise)
+logger.debug("sleeping...")
 while True:
-    logger.debug("sleeping...")
-    time.sleep(30)
+    time.sleep(120)
