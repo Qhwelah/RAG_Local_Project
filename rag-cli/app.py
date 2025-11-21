@@ -1,28 +1,32 @@
 import psycopg 
 import numpy as np
 from sentence_transformers import SentenceTransformer
-import requests, sys
+import requests, sys, logging
 import os, time
+
+# Configure logger
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 try:
     # Get environment variables
     PGUSER = os.getenv("PGUSER")
     PGPASSWORD = os.getenv("PGPASSWORD")
-    print(f"Variables are: PGUSER:{PGUSER}, PGPASSWORD:{PGPASSWORD}")
+    logger.debug(f"Variables are: PGUSER:{PGUSER}, PGPASSWORD:{PGPASSWORD}")
     
 
     # Connect to postgres service
-    print("Initializing postgres vector database...")
+    logger.info("Initializing postgres vector database...")
     conn = psycopg.connect(f"host=pg dbname=rag user={PGUSER} password={PGPASSWORD}")
     with conn, conn.cursor() as cur:
-        print("Initializing vector extension...")
+        logger.info("Initializing vector extension...")
         cur.execute("""
         CREATE EXTENSION IF NOT EXISTS vector;
         """)
         
         time.sleep(2)
 
-        print("Initializing chunks table...")
+        logger.info("Initializing chunks table...")
         cur.execute("""
         CREATE TABLE IF NOT EXISTS chunks(
             id bigserial PRIMARY KEY,
@@ -32,15 +36,15 @@ try:
             embedding vector(768)
         );
         """)
-    print("Postgres vector database initialized successfully.")
+    logger.info("Postgres vector database initialized successfully.")
 
 
 # Handle exceptions
 except Exception as e:
-    print(f"An unexpected error occurred: {e}")
+    logger.error(f"An unexpected error occurred: {e}")
 
 
 # Keep container running (Docker container exists otherwise)
 while True:
-    print("sleeping...")
+    logger.debug("sleeping...")
     time.sleep(30)
