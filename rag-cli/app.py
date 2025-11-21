@@ -15,14 +15,14 @@ try:
     print("Initializing postgres vector database...")
     conn = psycopg.connect(f"host=pg dbname=rag user={PGUSER} password={PGPASSWORD}")
     with conn, conn.cursor() as cur:
-        print("Enabling vector extension...")
+        print("Initializing vector extension...")
         cur.execute("""
         CREATE EXTENSION IF NOT EXISTS vector;
         """)
         
         time.sleep(2)
 
-        print("Creating chunks table...")
+        print("Initializing chunks table...")
         cur.execute("""
         CREATE TABLE IF NOT EXISTS chunks(
             id bigserial PRIMARY KEY,
@@ -33,13 +33,6 @@ try:
         );
         """)
     print("Postgres vector database initialized successfully.")
-
-
-    # Imports test
-    print("Can we make a numpy array?")
-    np_zeros_test = np.zeros((3, 4))
-    print(np_zeros_test)
-    print("The answer is yes I think maybe, see above")
 
 
 # Handle exceptions
