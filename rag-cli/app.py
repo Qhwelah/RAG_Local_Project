@@ -3,6 +3,7 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 import requests, sys, logging
 import os, time
+from text_chunker import chunker
 
 ## ========== Parameter settings ========== ##
 SENTENCE_TRANSFORMER_MODEL = "BAAI/bge-small-en-v1.5"
