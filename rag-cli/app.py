@@ -9,7 +9,7 @@ from text_chunker import chunker
 SENTENCE_TRANSFORMER_MODEL = "BAAI/bge-small-en-v1.5"
 EMBEDDING_VECTOR_DIMENSIONS = 384   #for BAAI/bge-small-en-v1.5
 
-# SENTENCE_TRANSFORMER_MODEL = "BAAI/bge-small-en-v1.5"
+# SENTENCE_TRANSFORMER_MODEL = "BAAI/bge-base-en-v1.5"
 # EMBEDDING_VECTOR_DIMENSIONS = 768   #for BAAI/bge-base-en-v1.5
 ## ======================================== ##
 

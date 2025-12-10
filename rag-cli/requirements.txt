@@ -2,3 +2,4 @@ psycopg[binary]
 sentence-transformers
 tiktoken
 requests
+beautifulsoup4
