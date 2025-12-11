@@ -27,18 +27,25 @@ def crawl_desired_tree():
         visited.add(url)
 
         print("Fetching", url)
-        resp = requests.get(url, timeout=10)
-        if resp.status_code != 200:
+        resp = ""
+        try:
+            resp = requests.get(url, timeout=10)
+        
+            if resp.status_code != 200:
+                continue
+
+            text = extract_text(resp.text)
+            results.append({"url": url, "text": text})
+
+            soup = BeautifulSoup(resp.text, "html.parser")
+            for a in soup.find_all("a", href=True):
+                next_url = urljoin(url, a["href"])
+                if is_in_desired_subtree(next_url) and next_url not in visited:
+                    queue.append(next_url)
+
+        except Exception as e:
+            print(f"CAUGHT error: {e} \nContinuing:")
             continue
-
-        text = extract_text(resp.text)
-        results.append({"url": url, "text": text})
-
-        soup = BeautifulSoup(resp.text, "html.parser")
-        for a in soup.find_all("a", href=True):
-            next_url = urljoin(url, a["href"])
-            if is_in_desired_subtree(next_url) and next_url not in visited:
-                queue.append(next_url)
 
     with open("scraped_pages.jsonl", "w", encoding="utf-8") as f:
         for r in results:
