@@ -3,3 +3,4 @@ sentence-transformers
 tiktoken
 requests
 beautifulsoup4
+scrapy
