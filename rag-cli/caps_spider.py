@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 BASE = "https://harrisburg.psu.edu/counseling-psychological-services"
 
 class CapsSpider(scrapy.Spider):
-    name = "caps"
+    name = "caps_crawler"
     allowed_domains = ["harrisburg.psu.edu"]
     start_urls = [BASE]
 
@@ -40,3 +40,10 @@ class CapsSpider(scrapy.Spider):
             "title": soup.title.string.strip() if soup.title else "",
             "text": text,
         }
+
+
+        # Follow links within subtree
+        for href in response.css("a::attr(href)").getall():
+            next_url = response.urljoin(href)
+            if self.is_in_caps_subtree(next_url):
+                yield scrapy.Request(next_url, callback=self.parse)
