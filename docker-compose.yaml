@@ -29,7 +29,8 @@ services:
       - PGPASSWORD=${POSTGRES_PASSWORD}
       - PGDATABASE=rag
       - OLLAMA_HOST=http://ollama:11434
-    # volumes:
+    volumes:
+      - rag-service:/data
     #   - ./docs:/docs:ro
     #   - ./rag-cli:app
     # command: ["bash", "-lc", "python app.py"]
@@ -37,3 +38,4 @@ services:
 volumes:
   pgdata:
   ollama:
+  rag-service:

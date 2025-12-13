@@ -7,7 +7,7 @@ try:
         for line in file:
             json_obj = json.loads(line)
 
-            print(f"successfully read data from the file:\n{json_obj}")
+            print(f"{json_obj}\n\n")
             continue
 
 except Exception as e:
