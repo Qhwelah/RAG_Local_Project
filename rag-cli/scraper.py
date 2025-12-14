@@ -5,6 +5,8 @@ from collections import deque
 import json
 
 
+## CURRENTLY NOT USED! Currently only `caps_spider.py` is used, this is an alternate solution that does not use scrapy
+
 BASE = "https://harrisburg.psu.edu/counseling-psychological-services"
 
 
@@ -20,27 +22,60 @@ def extract_text(html: str) -> str:
     soup = BeautifulSoup(html, "html.parser")
 
     # Remove all non-content sections of the page
-    for tag in soup(["header", "nav", "footer", "form", "script", "style", "noscript"]):
+    REMOVE_TAGS = ["header", "nav", "footer", "aside", "form", "script", "style", "noscript"]
+    for tag in soup(REMOVE_TAGS):
         tag.decompose()
 
-    # Search for only 'main' content of page. If cannot find, just use the html 'body' tag
-    main = (
-        soup.find("main") or
-        soup.find(attrs={"role": "main"}) or
-        soup.body
-    )
+    # If there is a "main" tag of some kind
+    semantic = soup.find("main") or soup.find("article")
+    if semantic:
+        text = semantic.get_text(separator="\n", strip=True)
+        if text and len(text) > 150:
+            return text
+    
+    # Else If there is a div tag with some sort of main content section
+    cms_candidates = [
+        soup.select_one("div#content"),
+        soup.select_one("div#main-content"),
+        soup.select_one("div.content"),
+        soup.select_one("div.entry-content"),
+        soup.select_one("div.post-content"),
+        soup.select_one("div.node__content"),
+    ]
+    for c in cms_candidates:
+        if c:
+            text = c.get_text(separator="\n", strip=True)
+            if text and len(text) > 150:
+                return text
+    
+    # Else, just split everything apart by newlines.
+    if soup.body:
+        text = soup.body.get_text(separator="\n", strip=True)
+        return text
 
-    if not main:
-        return ""
-
-    text = main.get_text(separator="\n", strip=True) 
-
-    lines = [line.strip() for line in text.splitlines() if line.strip()]
-    return "\n".join(lines)
+    return ""
 
 
-    # main = soup.find(id="block-desired-content") or soup.body
-    # return main.get_text(separator="\n", strip=True) if main else ""
+    ## Old tag separator method
+
+    # # Search for only 'main' content of page. If cannot find, just use the html 'body' tag
+    # main = (
+    #     soup.find("main") or
+    #     soup.find(attrs={"role": "main"}) or
+    #     soup.body
+    # )
+
+    # if not main:
+    #     return ""
+
+    # text = main.get_text(separator="\n", strip=True) 
+
+    # lines = [line.strip() for line in text.splitlines() if line.strip()]
+    # return "\n".join(lines)
+
+
+    # # main = soup.find(id="block-desired-content") or soup.body
+    # # return main.get_text(separator="\n", strip=True) if main else ""
 
 
 
