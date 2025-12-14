@@ -29,6 +29,7 @@ services:
       - PGPASSWORD=${POSTGRES_PASSWORD}
       - PGDATABASE=rag
       - OLLAMA_HOST=http://ollama:11434
+      - SCRAPE_URL=${SCRAPE_URL}
     volumes:
       - rag-service:/data
     #   - ./docs:/docs:ro

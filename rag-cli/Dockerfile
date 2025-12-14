@@ -12,8 +12,8 @@ COPY . .
 RUN chmod +x *.py && chmod +x *.sh
 
 # Set up web scraper
-RUN scrapy startproject caps_crawler
-RUN mv caps_spider.py /caps_crawler/caps_crawler/spiders/caps_crawler.py 
+RUN scrapy startproject universal_crawler
+RUN mv universal_spider.py /universal_crawler/universal_crawler/spiders/universal_crawler.py 
 
 # Run startup script, which includes scraping and db setup
 #  Eventually will include full ingestion (chunking/embedding) and the ollama calls
