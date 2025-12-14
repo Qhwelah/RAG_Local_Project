@@ -107,7 +107,7 @@ try:
 
 # Handle exceptions
 except Exception as e:
-    logger.error(f"An unexpected error occurred: {e}")
+    logger.error(f"An unexpected error occurred: {type(e)} - {e}")
 
 
 # Keep container running (Docker container exists otherwise)
