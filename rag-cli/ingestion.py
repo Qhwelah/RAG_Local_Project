@@ -1,7 +1,8 @@
 import json
 import logging
-import text_chunker
-from sentence_transformers import SentenceTransformer
+import numpy as np
+from  text_chunker import token_chunker
+from chunk_embedder import embedder
 
 SENTENCE_TRANSFORMER_MODEL = "BAAI/bge-base-en-v1.5"
 
@@ -26,13 +27,13 @@ def ingest_data():
 
     # Chunking
     logger.info("Beginning chunking... ")
-    chunked_documents = []
+    all_chunks = []
     try:
         for document in data:
             url = document['url']
             title = document['title']
 
-            chunks = text_chunker.token_chunker(document['text'])
+            chunks = token_chunker(document['text'])
 
             # Each individual chunk should have labelled which URl it was from and what the page title was 
             for chunk in chunks:
@@ -41,37 +42,24 @@ def ingest_data():
                 completed_chunk['doc_title'] = title
                 completed_chunk['text'] = chunk
 
-                chunked_documents.append(completed_chunk)
+                all_chunks.append(completed_chunk)
 
     except Exception as e:
         logger.error(f"Error during chunking: {type(e)} - {e}")
         raise(e)
-    
-    # chunk_num = 0
-    # for chunk in chunked_documents:
-    #     logger.debug(f"Chunk {chunk_num}: {chunk}")
-    #     chunk_num += 1
 
     logger.info("Chunking completed successfully!")
 
 
     # Embedding
     logger.info("Beginning embedding...")
-    embedding_model = SentenceTransformer(SENTENCE_TRANSFORMER_MODEL)
-    embedded_chunks = []
-    chunk_index = 0
-
     try:
-        for chunk in chunked_documents:
-            ch_embedding = embedding_model.encode(chunk['text'])
-            logger.debug(f"Chunk {chunk_index}: {chunk}\nEmbedding: {ch_embedding}\n")
-            chunked_documents[chunk_index]['embedding'] = ch_embedding
+        embedded_chunks = embedder(all_chunks=all_chunks, transformer_model=SENTENCE_TRANSFORMER_MODEL)
 
-            if(chunk_index < 3):
-                logger.debug(f"Final chunk entry: {chunked_documents[chunk_index]}\n")
+        logger.debug(f"First embedded chunk: {embedded_chunks[0] if len(embedded_chunks) > 0 else []}")
 
-            chunk_index += 1
-            
     except Exception as e:
-        logger.error(f"Error during embedding chunk index #{chunk_index}: {type(e)} - {e}")
+        logger.error(f"Error during embedding chunks: {type(e)} - {e}")
         raise(e)
+
+    logger.info("Embedding completed successfully!")
