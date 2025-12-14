@@ -1,17 +1,18 @@
+import os, time, sys, logging
 import psycopg 
-import numpy as np
-from sentence_transformers import SentenceTransformer
-import requests, sys, logging
-import os, time
-from text_chunker import chunker
+import requests
+
+import ingestion
+# from sentence_transformers import SentenceTransformer
+# import numpy as np
 
 
 ## ========== Parameter settings ========== ##
-SENTENCE_TRANSFORMER_MODEL = "BAAI/bge-small-en-v1.5"
-EMBEDDING_VECTOR_DIMENSIONS = 384   #for BAAI/bge-small-en-v1.5
+# SENTENCE_TRANSFORMER_MODEL = "BAAI/bge-small-en-v1.5"
+# EMBEDDING_VECTOR_DIMENSIONS = 384   #for BAAI/bge-small-en-v1.5
 
-# SENTENCE_TRANSFORMER_MODEL = "BAAI/bge-base-en-v1.5"
-# EMBEDDING_VECTOR_DIMENSIONS = 768   #for BAAI/bge-base-en-v1.5
+SENTENCE_TRANSFORMER_MODEL = "BAAI/bge-base-en-v1.5"
+EMBEDDING_VECTOR_DIMENSIONS = 768   #for BAAI/bge-base-en-v1.5
 ## ======================================== ##
 
 
@@ -74,6 +75,7 @@ try:
         # Embedding
             ## Sentence Transformer (use model SENTENCE_TRANSFORMER_MODEL)
 
+    ingestion.ingest_data()
 
     # Connect to ollama
         ## r = requests.post("http://ollama:11434/api/generate", json={"model": model, "prompt": prompt, "stream": False})

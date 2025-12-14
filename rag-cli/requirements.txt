@@ -1,6 +1,13 @@
+# PostgreSQL connection
 psycopg[binary] 
-sentence-transformers
-tiktoken
-requests
-beautifulsoup4
+
+# Web scraper
 scrapy
+beautifulsoup4
+
+# Chunking and Embedding
+transformers
+sentence-transformers
+
+# API connection to Ollama
+requests

@@ -1,6 +1,6 @@
 import json
 
-filename = '/caps_crawler/caps_pages.jsonl'
+filename = '/data/web_pages.jsonl'
 
 try:
     with open(filename, 'r') as file:
