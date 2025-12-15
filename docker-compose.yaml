@@ -9,20 +9,28 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    container_name: pgvector
+    restart: unless-stopped
 
-  # ollama:
-  #   image: ollama/ollama:latest
-  #   ports:
-  #     - "11434:11434"
-  #   volumes:
-  #     - ollama:/root/.ollama
-  #   pull_policy: always
+  ollama:
+    image: ollama/ollama:latest
+    environment:
+      - LLM_MODEL=${LLM_MODEL}
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+      - ./ollama_entrypoint.sh:/ollama_entrypoint.sh
+    container_name: ollama
+    pull_policy: always
+    restart: unless-stopped
+    entrypoint: ["/usr/bin/bash", "/ollama_entrypoint.sh"]
 
   rag-cli:
     build: ./rag-cli
     depends_on:
       - pg
-    #   - ollama
+      - ollama
     environment:
       - PGHOST=pg
       - PGUSER=${POSTGRES_USER}
@@ -34,7 +42,8 @@ services:
       - rag-service:/data
     #   - ./docs:/docs:ro
     #   - ./rag-cli:app
-    # command: ["bash", "-lc", "python app.py"]
+    container_name: rag_service
+    restart: unless-stopped
 
 volumes:
   pgdata:
