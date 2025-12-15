@@ -1,12 +1,10 @@
-import os, time, sys, logging
+import os, time, sys, logging, argparse, subprocess
 import psycopg
 from pgvector.psycopg import register_vector
 import requests
 import numpy as np
 
 from ingestion import ingest_data
-# from sentence_transformers import SentenceTransformer
-# import numpy as np
 
 
 ## ========== Parameter settings ========== ##
@@ -17,6 +15,15 @@ SENTENCE_TRANSFORMER_MODEL = "BAAI/bge-base-en-v1.5"
 EMBEDDING_VECTOR_DIMENSIONS = 768   #for BAAI/bge-base-en-v1.5
 ## ======================================== ##
 
+SCRAPE_CACHE_LOCATION="/data/web_pages.jsonl"
+
+
+# Set up argument processing
+parser = argparse.ArgumentParser(description="A script that runs the RAG environment for the specified web domain.")
+parser.add_argument('-i', '--do-ingestion', dest="do_ingestion", action='store_true', help='If passed, do ingestion (Chunk, Embed, populate PSQL). Clears previous PSQL db data.')
+parser.add_argument('-s', '--scrape-url', dest="url_to_scrape", help='If passed with a valid URL root, program will scrape data from suburls of this domain.', required=False, default=".")
+args = parser.parse_args()
+
 
 # Configure logger
 ## Logging to log file in volume
@@ -26,6 +33,7 @@ logging.basicConfig(
     filename='/data/rag_service.log',
     filemode="w"
 )
+
 
 ## Logging to console
 console_handler = logging.StreamHandler(sys.stderr)
@@ -70,42 +78,68 @@ try:
         """)
         logger.info(f"Postgres chunk embeddings table 'embeddings_{EMBEDDING_VECTOR_DIMENSIONS}' initialized successfully.")
 
+
         # Initial file ingestion and context database filling
+            # Scraping
+                ## Scrape through a website tree of a specified URL, and return the text from the pages.
+            
             # Chunking
                 ## Pure hard character limit, or using tiktoken
 
             # Embedding
                 ## Sentence Transformer (use model SENTENCE_TRANSFORMER_MODEL)
 
-        # Take web data cached in JSON file, then chunk and embed it
-        # Return a list of embedded chunks 
-        embedded_chunks = ingest_data(transformer_model=SENTENCE_TRANSFORMER_MODEL)
+
+        # If the arg --scrape-url is passed with some value, run the URL scraping script with the set URL
+        did_scraping = False
+        if(args.url_to_scrape != "."):
+            logger.info(f"Running web scraper script on root URL '{args.url_to_scrape}'")
+            try:
+                subprocess.run(["bash", "run_scraper.sh", args.url_to_scrape, SCRAPE_CACHE_LOCATION])
+                did_scraping = True
+            except Exception as e:
+                logger.error(f"Error during scraping: {type(e)} - {e}")
+                raise(e)
+            logger.info(f"URL scrape complete! Scrape data cached at '{SCRAPE_CACHE_LOCATION}'")
 
 
-        # Push embedded chunks to PostgreSQL database
-        register_vector(conn)
+        # Only do ingestion process if the tag argument was passed to the script OR if the scrape script was run
+        if(args.do_ingestion or did_scraping):
+            # Take web data cached in JSON file, then chunk and embed it
+            # Return a list of embedded chunks 
+            embedded_chunks = ingest_data(transformer_model=SENTENCE_TRANSFORMER_MODEL)
 
-        sql = f"""
-        INSERT INTO embeddings_{EMBEDDING_VECTOR_DIMENSIONS} (doc_id, doc_title, text, embedding)
-        VALUES (%s, %s, %s, %s)
-        """
-        rows = []
-        for chunk in embedded_chunks:
-            #chunk_entry = embedded_chunks[chunk]
-            emb = chunk['embedding']
-            if isinstance(emb, np.ndarray):
-                emb = emb.astype(float).ravel().tolist()
-            else:
-                emb = list(emb)
 
-            rows.append((chunk['doc_url'], chunk['doc_title'], chunk['text'], emb))
+            # Clear all previous entries in the PSQL table
+            logger.info(f"Clearing all previous chunks from RAG knowledge base 'embeddings_{EMBEDDING_VECTOR_DIMENSIONS}...")
+            cur.execute(f"TRUNCATE TABLE embeddings_{EMBEDDING_VECTOR_DIMENSIONS} RESTART IDENTITY;")
+            logger.info(f"Cleared!")
 
-        cur.executemany(sql, rows)
 
-        # cur.execute(f"""
-        # INSERT INTO embeddings_{EMBEDDING_VECTOR_DIMENSIONS} (doc_id, doc_title, text, embedding)
-        #     VALUES ('{chunk['doc_url']}', '{chunk['doc_title']}', '{chunk['text']}', '{chunk['embedding']}');
-        # """)
+            # Push embedded chunks to PostgreSQL database
+            register_vector(conn)
+
+            sql = f"""
+            INSERT INTO embeddings_{EMBEDDING_VECTOR_DIMENSIONS} (doc_id, doc_title, text, embedding)
+            VALUES (%s, %s, %s, %s)
+            """
+            rows = []
+            for chunk in embedded_chunks:
+                #chunk_entry = embedded_chunks[chunk]
+                emb = chunk['embedding']
+                if isinstance(emb, np.ndarray):
+                    emb = emb.astype(float).ravel().tolist()
+                else:
+                    emb = list(emb)
+
+                rows.append((chunk['doc_url'], chunk['doc_title'], chunk['text'], emb))
+
+            cur.executemany(sql, rows)
+
+            # cur.execute(f"""
+            # INSERT INTO embeddings_{EMBEDDING_VECTOR_DIMENSIONS} (doc_id, doc_title, text, embedding)
+            #     VALUES ('{chunk['doc_url']}', '{chunk['doc_title']}', '{chunk['text']}', '{chunk['embedding']}');
+            # """)
 
 
 
