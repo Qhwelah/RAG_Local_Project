@@ -21,7 +21,7 @@ SCRAPE_CACHE_LOCATION="/data/web_pages.jsonl"
 # Set up argument processing
 parser = argparse.ArgumentParser(description="A script that runs the RAG environment for the specified web domain.")
 parser.add_argument('-i', '--do-ingestion', dest="do_ingestion", action='store_true', help='If passed, do ingestion (Chunk, Embed, populate PSQL). Clears previous PSQL db data.')
-parser.add_argument('-s', '--scrape-url', dest="url_to_scrape", help='If passed with a valid URL root, program will scrape data from suburls of this domain.', required=False, default=".")
+parser.add_argument('-s', '--scrape-url', dest="url_to_scrape", help='If passed with a valid URL root, program will scrape data from suburls of this domain.', required=False, default="")
 args = parser.parse_args()
 
 
@@ -92,7 +92,7 @@ try:
 
         # If the arg --scrape-url is passed with some value, run the URL scraping script with the set URL
         did_scraping = False
-        if(args.url_to_scrape != "."):
+        if(len(args.url_to_scrape) > 0):
             logger.info(f"Running web scraper script on root URL '{args.url_to_scrape}'")
             try:
                 subprocess.run(["bash", "run_scraper.sh", args.url_to_scrape, SCRAPE_CACHE_LOCATION])
@@ -113,10 +113,12 @@ try:
             # Clear all previous entries in the PSQL table
             logger.info(f"Clearing all previous chunks from RAG knowledge base 'embeddings_{EMBEDDING_VECTOR_DIMENSIONS}...")
             cur.execute(f"TRUNCATE TABLE embeddings_{EMBEDDING_VECTOR_DIMENSIONS} RESTART IDENTITY;")
-            logger.info(f"Cleared!")
+            cur.execute(f"SELECT COUNT(*) FROM embeddings_{EMBEDDING_VECTOR_DIMENSIONS};")
+            logger.info(f"Cleared! Currently there are {cur.fetchone()} entries in the db.")
 
 
             # Push embedded chunks to PostgreSQL database
+            logger.info(f"Preparing chunks for refilling the database...")
             register_vector(conn)
 
             sql = f"""
@@ -134,7 +136,9 @@ try:
 
                 rows.append((chunk['doc_url'], chunk['doc_title'], chunk['text'], emb))
 
+            logger.info(f"Inserting {len(rows)} into table 'embeddings_{EMBEDDING_VECTOR_DIMENSIONS}'")
             cur.executemany(sql, rows)
+            logger.info(f"Successfully inserted {len(rows)} entries into the knowledge db!")
 
             # cur.execute(f"""
             # INSERT INTO embeddings_{EMBEDDING_VECTOR_DIMENSIONS} (doc_id, doc_title, text, embedding)
