@@ -4,11 +4,9 @@ import numpy as np
 from  text_chunker import token_chunker
 from chunk_embedder import embedder
 
-SENTENCE_TRANSFORMER_MODEL = "BAAI/bge-base-en-v1.5"
-
 logger = logging.getLogger(__name__)
 
-def ingest_data():
+def ingest_data(transformer_model):
     # Pull data from cached data (from last scrape)
     data = []
     try:
@@ -53,9 +51,9 @@ def ingest_data():
 
     # Embedding
     logger.info("Beginning embedding...")
+    embedded_chunks = []
     try:
-        embedded_chunks = embedder(all_chunks=all_chunks, transformer_model=SENTENCE_TRANSFORMER_MODEL)
-
+        embedded_chunks = embedder(all_chunks=all_chunks, transformer_model=transformer_model)
         logger.debug(f"First embedded chunk: {embedded_chunks[0] if len(embedded_chunks) > 0 else []}")
 
     except Exception as e:
@@ -63,3 +61,7 @@ def ingest_data():
         raise(e)
 
     logger.info("Embedding completed successfully!")
+
+
+    # Return embedded chunks to be pushed to PostgreSQL
+    return embedded_chunks

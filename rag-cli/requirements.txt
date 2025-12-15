@@ -1,5 +1,6 @@
 # PostgreSQL connection
 psycopg[binary] 
+pgvector
 
 # Web scraper
 scrapy

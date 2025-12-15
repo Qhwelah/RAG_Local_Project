@@ -1,8 +1,10 @@
 import os, time, sys, logging
-import psycopg 
+import psycopg
+from pgvector.psycopg import register_vector
 import requests
+import numpy as np
 
-import ingestion
+from ingestion import ingest_data
 # from sentence_transformers import SentenceTransformer
 # import numpy as np
 
@@ -41,7 +43,7 @@ try:
     PGUSER = os.getenv("PGUSER")
     PGPASSWORD = os.getenv("PGPASSWORD")
     logger.debug(f"Variables are: PGUSER:{PGUSER}, PGPASSWORD:{PGPASSWORD}")
-    
+
 
     # Connect to postgres service
     logger.info("Initializing postgres vector database...")
@@ -51,7 +53,7 @@ try:
         cur.execute("""
         CREATE EXTENSION IF NOT EXISTS vector;
         """)
-        
+
         time.sleep(2)
 
         logger.info("Initializing chunks embedding table...")
@@ -61,21 +63,52 @@ try:
         CREATE TABLE IF NOT EXISTS embeddings_{EMBEDDING_VECTOR_DIMENSIONS}(
             id bigserial PRIMARY KEY,
             doc_id text,
-            chunk_index int,
+            doc_title text,
             text text,
             embedding vector({EMBEDDING_VECTOR_DIMENSIONS})
         );
         """)
-    logger.info(f"Postgres chunk embeddings table 'embeddings_{EMBEDDING_VECTOR_DIMENSIONS}' initialized successfully.")
+        logger.info(f"Postgres chunk embeddings table 'embeddings_{EMBEDDING_VECTOR_DIMENSIONS}' initialized successfully.")
 
-    # Initial file ingestion and context database filling
-        # Chunking
-            ## Pure hard character limit, or using tiktoken
+        # Initial file ingestion and context database filling
+            # Chunking
+                ## Pure hard character limit, or using tiktoken
 
-        # Embedding
-            ## Sentence Transformer (use model SENTENCE_TRANSFORMER_MODEL)
+            # Embedding
+                ## Sentence Transformer (use model SENTENCE_TRANSFORMER_MODEL)
 
-    ingestion.ingest_data()
+        # Take web data cached in JSON file, then chunk and embed it
+        # Return a list of embedded chunks 
+        embedded_chunks = ingest_data(transformer_model=SENTENCE_TRANSFORMER_MODEL)
+
+
+        # Push embedded chunks to PostgreSQL database
+        register_vector(conn)
+
+        sql = f"""
+        INSERT INTO embeddings_{EMBEDDING_VECTOR_DIMENSIONS} (doc_id, doc_title, text, embedding)
+        VALUES (%s, %s, %s, %s)
+        """
+        rows = []
+        for chunk in embedded_chunks:
+            #chunk_entry = embedded_chunks[chunk]
+            emb = chunk['embedding']
+            if isinstance(emb, np.ndarray):
+                emb = emb.astype(float).ravel().tolist()
+            else:
+                emb = list(emb)
+
+            rows.append((chunk['doc_url'], chunk['doc_title'], chunk['text'], emb))
+
+        cur.executemany(sql, rows)
+
+        # cur.execute(f"""
+        # INSERT INTO embeddings_{EMBEDDING_VECTOR_DIMENSIONS} (doc_id, doc_title, text, embedding)
+        #     VALUES ('{chunk['doc_url']}', '{chunk['doc_title']}', '{chunk['text']}', '{chunk['embedding']}');
+        # """)
+
+
+
 
     # Connect to ollama
         ## r = requests.post("http://ollama:11434/api/generate", json={"model": model, "prompt": prompt, "stream": False})
@@ -95,11 +128,11 @@ try:
         # With the k closest results of the vector search prepended, call the LLM model
             ## Prompt: "Use the context to answer.\n\nContext:\n{ctx}\n\nQuestion: {q}\nAnswer:"
             ## "Augmented Generation"
-        
+
         # Print out the model's response to the user
             ## answer = ollama_generate(prompt)
             ## print(answer)
-        
+
         # Repeat  
 
 
