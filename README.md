@@ -7,6 +7,12 @@
 # Postgres
 POSTGRES_USER = postgres 
 POSTGRES_PASSWORD = devpassword
+
+# URL to pull information from in the Web Scraper
+SCRAPE_URL = "https://harrisburg.psu.edu/counseling-psychological-services"
+
+# LLM Model to pull in Ollama for RAG generation
+LLM_MODEL = mistral
 ```
 
 - cd into project directory
@@ -18,11 +24,10 @@ POSTGRES_PASSWORD = devpassword
     - Control+C to cancel the docker run
     - `Docker compose down` to delete the containers
 
-
-
-- Once the postgres vectorized database is up and running with the Chunking and Embedding, I won't have to keep re-querying the website every time I start the container.
-    - So when I get to that point, remove the auto-scraping script from the `startup.sh` bash script.
-    - Could also just put the `caps_pages.jsonl` in a mounted volume for this container and call it a day.
+- The client container `rag-cli`'s main running script, `app.py`, is configured to allow parameters to be fed in for specific behaviors.
+    - `-i` or `--do-ingestion`, if present, will tell the script to take the cached web scraping data, and chunk, embed, and push the data to the RAG database (which will also be cleared beforehand)
+    - `-s` or `--scrape-url` with a string url like `ttps://harrisburg.psu.edu/counseling-psychological-services` will tell the program to scrape data from the website specified and all subdomains, and also run the ingestion process described above with the new data. 
+    - Currently the only way to feed in these flags is from inside the `rag-cli` container, but that will be resolved later on in development.
 
 
 ## PostgreSQL database commands
