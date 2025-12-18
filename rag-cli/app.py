@@ -1,6 +1,7 @@
 import os, time, sys, logging, argparse, subprocess
 import psycopg
 from pgvector.psycopg import register_vector
+from ollama import Client
 import requests
 import numpy as np
 
@@ -15,6 +16,7 @@ SENTENCE_TRANSFORMER_MODEL = "BAAI/bge-base-en-v1.5"
 EMBEDDING_VECTOR_DIMENSIONS = 768   #for BAAI/bge-base-en-v1.5
 ## ======================================== ##
 
+OLLAMA_MODEL="mistral"
 SCRAPE_CACHE_LOCATION="/data/web_pages.jsonl"
 
 
@@ -148,30 +150,41 @@ try:
 
 
 
-    # Connect to ollama
-        ## r = requests.post("http://ollama:11434/api/generate", json={"model": model, "prompt": prompt, "stream": False})
+        # Connect to ollama
+            ## r = requests.post("http://ollama:11434/api/generate", json={"model": model, "prompt": prompt, "stream": False})
+        client = Client(host="http://ollama:11434")
+        messages = [
+            {'role': 'system', 'content': 'You are a concise assistant.'},
+            {'role': 'user', 'content': 'Explain how Mars Transfer windows work in one paragraph.'},
+        ]
 
-    # LLM call loop
-        # Wait for user input
-            ## External text editor perhaps, or multiline text entry
-            ## See `user_prompt_input.py`
+        logger.info(f"Requesting LLM the following prompt: {messages[1]['content']}")
+        resp = client.chat(model=f'{OLLAMA_MODEL}', messages=messages)
+        logger.info(f"LLM Response: {resp['message']['content']}")
 
-        # Chunk and vectorize the user's input
-            ## Same chunking and embedding functions from above
 
-        # Call psql vector distance comparison
-            ## Using <-> operator to find vector distances
-            ## "Retrieval"
 
-        # With the k closest results of the vector search prepended, call the LLM model
-            ## Prompt: "Use the context to answer.\n\nContext:\n{ctx}\n\nQuestion: {q}\nAnswer:"
-            ## "Augmented Generation"
+        # LLM call loop
+            # Wait for user input
+                ## External text editor perhaps, or multiline text entry
+                ## See `user_prompt_input.py`
 
-        # Print out the model's response to the user
-            ## answer = ollama_generate(prompt)
-            ## print(answer)
+            # Chunk and vectorize the user's input
+                ## Same chunking and embedding functions from above
 
-        # Repeat  
+            # Call psql vector distance comparison
+                ## Using <-> operator to find vector distances
+                ## "Retrieval"
+
+            # With the k closest results of the vector search prepended, call the LLM model
+                ## Prompt: "Use the context to answer.\n\nContext:\n{ctx}\n\nQuestion: {q}\nAnswer:"
+                ## "Augmented Generation"
+
+            # Print out the model's response to the user
+                ## answer = ollama_generate(prompt)
+                ## print(answer)
+
+            # Repeat  
 
 
 
