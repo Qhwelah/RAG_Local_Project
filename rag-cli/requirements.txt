@@ -12,3 +12,4 @@ sentence-transformers
 
 # API connection to Ollama
 requests
+ollama
