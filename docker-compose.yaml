@@ -38,6 +38,8 @@ services:
       - PGDATABASE=rag
       - OLLAMA_HOST=http://ollama:11434
       - SCRAPE_URL=${SCRAPE_URL}
+    ports:
+      - "8000:8000"
     volumes:
       - rag-service:/data
     #   - ./docs:/docs:ro
