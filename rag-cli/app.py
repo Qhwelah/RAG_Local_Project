@@ -6,6 +6,7 @@ import requests
 import numpy as np
 
 from ingestion import ingest_data
+from ollama_chat import launch_LLM_interaction_service
 
 
 ## ========== Parameter settings ========== ##
@@ -16,9 +17,14 @@ SENTENCE_TRANSFORMER_MODEL = "BAAI/bge-base-en-v1.5"
 EMBEDDING_VECTOR_DIMENSIONS = 768   #for BAAI/bge-base-en-v1.5
 ## ======================================== ##
 
-OLLAMA_MODEL="mistral"
 SCRAPE_CACHE_LOCATION="/data/web_pages.jsonl"
+
+OLLAMA_MODEL="mistral"
+OLLAMA_SERVICE_ADDRESS='http://ollama:11434'
 STREAM_LLM_RESPONSE=False
+CHAT_WINDOW_SERVER_NAME='0.0.0.0'
+CHAT_WINDOW_SERVER_PORT=7860
+
 
 
 # Set up argument processing
@@ -153,32 +159,40 @@ try:
 
         # Connect to ollama
             ## r = requests.post("http://ollama:11434/api/generate", json={"model": model, "prompt": prompt, "stream": False})
-        client = Client(host="http://ollama:11434")
-        messages = [
-            {'role': 'system', 'content': 'You are a concise assistant.'},
-            {'role': 'user', 'content': 'Explain how Mars Transfer windows work in one paragraph.'},
-        ]
-        logger.info(f"Requesting LLM the following prompt: {messages[1]['content']}")
-
-        if(STREAM_LLM_RESPONSE):
-            # For printing out tokens one at a time as they arrive
-            logger.info(f"Printing out tokens as they arrive...")
-            start_time = time.perf_counter()
-            #response = ""
-            for chunk in client.chat(model=f'{OLLAMA_MODEL}', messages=messages, stream=True):
-                #response += chunk
-                print(chunk['message']['content'], end='', flush=True)
-            end_time = time.perf_counter()
-            print()
-            logger.info(f"Generated for {(end_time-start_time):.4f} seconds.")
+        launch_LLM_interaction_service(
+            server_name=CHAT_WINDOW_SERVER_NAME,
+            port=CHAT_WINDOW_SERVER_PORT,
+            do_token_stream=STREAM_LLM_RESPONSE,
+            model_name=OLLAMA_MODEL,
+            ollama_address=OLLAMA_SERVICE_ADDRESS
+        )
         
-        else:
-            # For one-chunk responses
-            logger.info(f"Waiting for all tokens before printing out response.")
-            start_time = time.perf_counter()
-            resp = client.chat(model=f'{OLLAMA_MODEL}', messages=messages)
-            end_time = time.perf_counter()
-            logger.info(f"Generated for {(end_time-start_time):.4f} seconds.\nFull LLM Response: {resp['message']['content']}")
+        # client = Client(host="http://ollama:11434")
+        # messages = [
+        #     {'role': 'system', 'content': 'You are a concise assistant.'},
+        #     {'role': 'user', 'content': 'Explain how Mars Transfer windows work in one paragraph.'},
+        # ]
+        # logger.info(f"Requesting LLM the following prompt: {messages[1]['content']}")
+
+        # if(STREAM_LLM_RESPONSE):
+        #     # For printing out tokens one at a time as they arrive
+        #     logger.info(f"Printing out tokens as they arrive...")
+        #     start_time = time.perf_counter()
+        #     #response = ""
+        #     for chunk in client.chat(model=f'{OLLAMA_MODEL}', messages=messages, stream=True):
+        #         #response += chunk
+        #         print(chunk['message']['content'], end='', flush=True)
+        #     end_time = time.perf_counter()
+        #     print()
+        #     logger.info(f"Generated for {(end_time-start_time):.4f} seconds.")
+        
+        # else:
+        #     # For one-chunk responses
+        #     logger.info(f"Waiting for all tokens before printing out response.")
+        #     start_time = time.perf_counter()
+        #     resp = client.chat(model=f'{OLLAMA_MODEL}', messages=messages)
+        #     end_time = time.perf_counter()
+        #     logger.info(f"Generated for {(end_time-start_time):.4f} seconds.\nFull LLM Response: {resp['message']['content']}")
 
 
 

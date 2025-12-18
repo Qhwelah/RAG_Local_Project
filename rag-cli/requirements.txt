@@ -13,3 +13,6 @@ sentence-transformers
 # API connection to Ollama
 requests
 ollama
+
+# Chat window interaction service with LLM
+gradio
