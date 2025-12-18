@@ -41,11 +41,14 @@ def chat_fn(message, history):
 
 # Create the interaction service, and host it on the specified port
 def launch_LLM_interaction_service(server_name='0.0.0.0', port=7860, do_token_stream=False, model_name='mistral', ollama_address='http://ollama:11434'):
+    # Need to use the GLOBAL keyword to edit scriptwide variables
+    global DO_TOKEN_STREAM
+    global LLM_MODEL_NAME
+    global OLLAMA_ADDRESS
+    
     DO_TOKEN_STREAM = do_token_stream
     LLM_MODEL_NAME = model_name
     OLLAMA_ADDRESS = ollama_address
-
-    logger.info(f"Launching LLM interaction service at {server_name}:{port} {'using' if DO_TOKEN_STREAM else 'witnout using'} live token stream.")
 
     
     gr.ChatInterface(

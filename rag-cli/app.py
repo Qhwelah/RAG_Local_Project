@@ -159,6 +159,9 @@ try:
 
         # Connect to ollama
             ## r = requests.post("http://ollama:11434/api/generate", json={"model": model, "prompt": prompt, "stream": False})
+        logger.info(f"Launching LLM interaction service at {CHAT_WINDOW_SERVER_NAME}:{CHAT_WINDOW_SERVER_PORT} \
+                     {'using' if STREAM_LLM_RESPONSE else 'without using'} live token stream.")
+
         launch_LLM_interaction_service(
             server_name=CHAT_WINDOW_SERVER_NAME,
             port=CHAT_WINDOW_SERVER_PORT,
@@ -166,6 +169,8 @@ try:
             model_name=OLLAMA_MODEL,
             ollama_address=OLLAMA_SERVICE_ADDRESS
         )
+
+        logger.info(f"LLM interaction service launched successfully!")
         
         # client = Client(host="http://ollama:11434")
         # messages = [
