@@ -35,12 +35,13 @@ def chat_fn(message, history):
     # Do RAG retrieval of K closest context pieces, append that content to the messages history
 
 
-    messages.append({'system': 'system', 'content': 'You are a concise assistant. User provided context or previous answers to respond to the user, if relevant. ' +
-    'If you do not know some peice of information, just say you do not know, do NOT make up an answer.'})
+    messages.append({'role': 'system', 'content': 'You are a concise assistant. User provided context or previous answers to respond to the user, if relevant. ' +
+    'If you do not know some piece of information, just say you do not know, do NOT make up an answer.'})
 
 
-    messages.reverse() # List is created backwards, so flip it forwards to maintain correct flow.
-    # So the final order of messages is: System, Context, Chat history
+    # List is created backwards, so flip it forwards to maintain correct flow.
+    # So the final order of message groupings is: 1. System, 2. Context, 3. Chat history
+    messages.reverse() 
 
 
     # Append the new message to the conversation
