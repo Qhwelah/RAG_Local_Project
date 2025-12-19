@@ -21,7 +21,8 @@ SCRAPE_CACHE_LOCATION="/data/web_pages.jsonl"
 
 OLLAMA_MODEL="mistral"
 OLLAMA_SERVICE_ADDRESS='http://ollama:11434'
-STREAM_LLM_RESPONSE=False
+STREAM_LLM_RESPONSE=True
+MESSAGE_HISTORY_REUSE_CAP=4
 CHAT_WINDOW_SERVER_NAME='0.0.0.0'
 CHAT_WINDOW_SERVER_PORT=7860
 
@@ -166,6 +167,7 @@ try:
             server_name=CHAT_WINDOW_SERVER_NAME,
             port=CHAT_WINDOW_SERVER_PORT,
             do_token_stream=STREAM_LLM_RESPONSE,
+            history_reuse_cap=MESSAGE_HISTORY_REUSE_CAP,
             model_name=OLLAMA_MODEL,
             ollama_address=OLLAMA_SERVICE_ADDRESS
         )
