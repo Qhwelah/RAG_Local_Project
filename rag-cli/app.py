@@ -10,14 +10,18 @@ from ollama_chat import launch_LLM_interaction_service
 
 
 ## ========== Parameter settings ========== ##
+SCRAPE_CACHE_LOCATION="/data/web_pages.jsonl"
+
+### == Choose one set or the other == ###
 # SENTENCE_TRANSFORMER_MODEL = "BAAI/bge-small-en-v1.5"
 # EMBEDDING_VECTOR_DIMENSIONS = 384   #for BAAI/bge-small-en-v1.5
 
 SENTENCE_TRANSFORMER_MODEL = "BAAI/bge-base-en-v1.5"
 EMBEDDING_VECTOR_DIMENSIONS = 768   #for BAAI/bge-base-en-v1.5
-## ======================================== ##
-
-SCRAPE_CACHE_LOCATION="/data/web_pages.jsonl"
+### ================================= ###
+CHUNKER_MAX_TOKENS = 450
+CHUNKER_TOKEN_OVERLAP = 75
+ASSERT_TOKEN_MAX = 512
 
 OLLAMA_MODEL="mistral"
 OLLAMA_SERVICE_ADDRESS='http://ollama:11434'
@@ -25,6 +29,7 @@ STREAM_LLM_RESPONSE=True
 MESSAGE_HISTORY_REUSE_CAP=4
 CHAT_WINDOW_SERVER_NAME='0.0.0.0'
 CHAT_WINDOW_SERVER_PORT=7860
+## ======================================== ##
 
 
 

@@ -9,15 +9,15 @@ ASSERT_TOKEN_MAX = 512
 
 logger = logging.getLogger(__name__)
 
-tokenizer = AutoTokenizer.from_pretrained(
-    SENTENCE_TRANSFORMER_MODEL,
-    use_fast = True
-)
-
 
 # Chunker function, which is a token-based splitting function.
 #  Uses the HuggingFace AutoTokenizer, which auto detects settings based on the embedding model you are using (see tokenizer declaration above).
 def token_chunker(text: str, chunk_size: int = CHUNKER_MAX_TOKENS, chunk_overlap: int = CHUNKER_TOKEN_OVERLAP) -> list[str]:
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        SENTENCE_TRANSFORMER_MODEL,
+        use_fast = True
+    )
 
     tokens = tokenizer.encode(text, add_special_tokens=False)
 
