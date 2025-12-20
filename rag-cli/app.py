@@ -40,6 +40,7 @@ parser.add_argument('-s', '--scrape-url', dest="url_to_scrape", help='If passed 
 args = parser.parse_args()
 
 
+
 # Configure logger
 ## Logging to log file in volume
 logging.basicConfig(
@@ -49,7 +50,6 @@ logging.basicConfig(
     filemode="w"
 )
 
-
 ## Logging to console
 console_handler = logging.StreamHandler(sys.stderr)
 console_handler.setLevel(logging.INFO)
@@ -58,6 +58,7 @@ console_handler.setFormatter(formatter)
 logging.getLogger('').addHandler(console_handler)
 
 logger = logging.getLogger(__name__)
+
 
 
 # Begin service setup
@@ -94,17 +95,10 @@ try:
         logger.info(f"Postgres chunk embeddings table 'embeddings_{EMBEDDING_VECTOR_DIMENSIONS}' initialized successfully.")
 
 
-        # Initial file ingestion and context database filling
-            # Scraping
-                ## Scrape through a website tree of a specified URL, and return the text from the pages.
+        
+        # Scraping
+            ## Scrape through a website tree of a specified URL, and return the text from the pages.
             
-            # Chunking
-                ## Pure hard character limit, or using tiktoken
-
-            # Embedding
-                ## Sentence Transformer (use model SENTENCE_TRANSFORMER_MODEL)
-
-
         # If the arg --scrape-url is passed with some value, run the URL scraping script with the set URL
         did_scraping = False
         if(len(args.url_to_scrape) > 0):
@@ -117,6 +111,14 @@ try:
                 raise(e)
             logger.info(f"URL scrape complete! Scrape data cached at '{SCRAPE_CACHE_LOCATION}'")
 
+
+
+        # Initial file ingestion and context database filling
+            # Chunking
+                ## Pure hard character limit, or using tiktoken
+
+            # Embedding
+                ## Sentence Transformer (use model SENTENCE_TRANSFORMER_MODEL)
 
         # Only do ingestion process if the tag argument was passed to the script OR if the scrape script was run
         if(args.do_ingestion or did_scraping):
@@ -155,16 +157,9 @@ try:
             cur.executemany(sql, rows)
             logger.info(f"Successfully inserted {len(rows)} entries into the knowledge db!")
 
-            # cur.execute(f"""
-            # INSERT INTO embeddings_{EMBEDDING_VECTOR_DIMENSIONS} (doc_id, doc_title, text, embedding)
-            #     VALUES ('{chunk['doc_url']}', '{chunk['doc_title']}', '{chunk['text']}', '{chunk['embedding']}');
-            # """)
 
 
-
-
-        # Connect to ollama
-            ## r = requests.post("http://ollama:11434/api/generate", json={"model": model, "prompt": prompt, "stream": False})
+        # Connect to ollama service
         logger.info(f"Launching LLM interaction service at {CHAT_WINDOW_SERVER_NAME}:{CHAT_WINDOW_SERVER_PORT} \
                      {'using' if STREAM_LLM_RESPONSE else 'without using'} live token stream.")
 
@@ -178,37 +173,9 @@ try:
         )
 
         logger.info(f"LLM interaction service launched successfully!")
-        
-        # client = Client(host="http://ollama:11434")
-        # messages = [
-        #     {'role': 'system', 'content': 'You are a concise assistant.'},
-        #     {'role': 'user', 'content': 'Explain how Mars Transfer windows work in one paragraph.'},
-        # ]
-        # logger.info(f"Requesting LLM the following prompt: {messages[1]['content']}")
 
-        # if(STREAM_LLM_RESPONSE):
-        #     # For printing out tokens one at a time as they arrive
-        #     logger.info(f"Printing out tokens as they arrive...")
-        #     start_time = time.perf_counter()
-        #     #response = ""
-        #     for chunk in client.chat(model=f'{OLLAMA_MODEL}', messages=messages, stream=True):
-        #         #response += chunk
-        #         print(chunk['message']['content'], end='', flush=True)
-        #     end_time = time.perf_counter()
-        #     print()
-        #     logger.info(f"Generated for {(end_time-start_time):.4f} seconds.")
-        
-        # else:
-        #     # For one-chunk responses
-        #     logger.info(f"Waiting for all tokens before printing out response.")
-        #     start_time = time.perf_counter()
-        #     resp = client.chat(model=f'{OLLAMA_MODEL}', messages=messages)
-        #     end_time = time.perf_counter()
-        #     logger.info(f"Generated for {(end_time-start_time):.4f} seconds.\nFull LLM Response: {resp['message']['content']}")
-
-
-
-        # LLM call loop
+        # What does this service do?
+        # This is the process of the LLM call loop, which is all handled by the LLM interaction service
             # Wait for user input
                 ## External text editor perhaps, or multiline text entry
                 ## See `user_prompt_input.py`

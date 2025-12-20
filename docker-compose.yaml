@@ -41,10 +41,9 @@ services:
     ports:
       - "8000:8000"
       - "7860:7860"
+      - "7861:7861"
     volumes:
       - rag-service:/data
-    #   - ./docs:/docs:ro
-    #   - ./rag-cli:app
     container_name: rag_service
     restart: unless-stopped
 

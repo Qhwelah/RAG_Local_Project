@@ -33,7 +33,7 @@ def ingest_data(transformer_model):
 
             chunks = token_chunker(document['text'])
 
-            # Each individual chunk should have labelled which URl it was from and what the page title was 
+            # Each individual chunk should have labelled which URL it was from and what the page title was 
             for chunk in chunks:
                 completed_chunk = {}
                 completed_chunk['doc_url'] = url
