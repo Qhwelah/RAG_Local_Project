@@ -1,3 +1,4 @@
+from rag_k_nearest_request import get_nearest_chunks
 from ollama import Client
 import gradio as gr
 import logging
@@ -33,10 +34,15 @@ def chat_fn(message, history):
 
 
     # Do RAG retrieval of K closest context pieces, append that content to the messages history
+    nearest_chunks = get_nearest_chunks(text=message)
+    for chunk in nearest_chunks:
+        messages.append({'role': 'user', 'content': f"Context:\n{chunk[3]}. \nContext source URL: {chunk[1]}, Context source webpage title: {chunk[2]}."})
 
 
+    # System prompt
     messages.append({'role': 'system', 'content': 'You are a concise assistant. User provided context or previous answers to respond to the user, if relevant. ' +
-    'If you do not know some piece of information, just say you do not know, do NOT make up an answer.'})
+    'If you do not know some piece of information, just say you do not know, do NOT make up an answer. ' +
+    'If using information from the context, cite your source with the relevant webpage title that you got the information from.'})
 
 
     # List is created backwards, so flip it forwards to maintain correct flow.
@@ -46,7 +52,7 @@ def chat_fn(message, history):
 
     # Append the new message to the conversation
     messages.append({"role": "user", "content": message})
-    logger.info(f"Finalized chat log to feed to bot is: {messages}")
+    logger.info(f"Finalized prompt to feed to bot is: {messages}")
     logging.info(f"User asks: {message}")
 
 

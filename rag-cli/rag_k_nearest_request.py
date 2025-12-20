@@ -25,7 +25,7 @@ def get_nearest_chunks(text, k=4):
 
 
     # Connect to postgres service
-    print("Connecting to postgres vector database...")
+    logger.info("Connecting to postgres vector database...")
     conn = psycopg.connect(f"host=pg dbname=rag user={PGUSER} password={PGPASSWORD}")
 
     with conn, conn.cursor() as cur:
@@ -33,7 +33,7 @@ def get_nearest_chunks(text, k=4):
         register_vector(conn)
 
         # Chunk text input
-        print(f"Chunking user request...")
+        logger.info(f"Chunking user request...")
         chunks = token_chunker(text)
         all_chunks = []
         for chunk in chunks:
@@ -42,12 +42,12 @@ def get_nearest_chunks(text, k=4):
             completed_chunk['text'] = chunk
 
             all_chunks.append(completed_chunk)
-        print(f"Chunking complete!")
+        logger.info(f"Chunking complete!")
 
         # Embed chunks 
-        print(f"Embedding user input...")
+        logger.info(f"Embedding user input...")
         embedded_chunks = embedder(all_chunks, SENTENCE_TRANSFORMER_MODEL)
-        print(f"Embedding complete!")
+        logger.info(f"Embedding complete!")
 
         # Do K-nearest seach on those input chunks
         sql = f"""
@@ -58,7 +58,7 @@ def get_nearest_chunks(text, k=4):
         """
         
         all_hits = []
-        print(f"Beginning PSQL distance search...")
+        logger.info(f"Beginning PSQL distance search...")
         for qi in embedded_chunks:
             # Convert embedding from np vector to regular list
             emb = qi['embedding']
@@ -70,7 +70,7 @@ def get_nearest_chunks(text, k=4):
             # Call actual sql query
             cur.execute(sql, (emb, K_INITIAL))
             all_hits.extend(cur.fetchall())
-        print(f"Distance search complete!\nCurrent top entries: {all_hits}")
+        logger.info(f"Distance search complete!\nFound {len(all_hits)} potential top entries.")
 
 
         # Get top K entries
@@ -82,9 +82,14 @@ def get_nearest_chunks(text, k=4):
                 best_by_chunk_id[chunk_id] = row
 
         final = sorted(best_by_chunk_id.values(), key=lambda r: r[4])[:K_FINAL]
-        print(f"\n{K_FINAL} closest are {final}")
+        # final_dict = {}
+        # for chunk in final:
+        #     final_dict[chunk[0]] = {'id': chunk[0], 'url': chunk[1], 'text': chunk[2], 'score': chunk[3]}
+        logger.info(f"\n{len(final)} closest context chunks are {final}")
 
         # Return text from K-nearest chunks
+        logger.info(f"Returning closest chunks.")
+        return final
 
-user_text = "I am a Penn State Harrisburg student. What phone numbers should I call if I'm feeling extremely depressed?"
-get_nearest_chunks(user_text)
+# user_text = "I am a Penn State Harrisburg student. What phone numbers should I call if I'm feeling extremely depressed?"
+# get_nearest_chunks(user_text)
