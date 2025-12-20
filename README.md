@@ -1,5 +1,9 @@
 # Locally Hosted RAG LLM Project
-### Created initially for COMP 519 - Advanced Datastructures
+### Created initially for COMP 519 - Advanced Databases
+
+## GitHub
+- This project is hosted on GitHub. For the most recent code, go to: `https://github.com/Qhwelah/RAG_Local_Project`
+
 
 ## Startup
 - Create `.env` file:
@@ -21,13 +25,15 @@ LLM_MODEL = mistral
     - `docker compose up --build`
 
 - To stop the docker environment and delete the containers, do:
-    - Control+C to cancel the docker run
-    - `Docker compose down` to delete the containers
+    - `CTRL+C` to cancel the docker run
+    - `docker compose down` to delete the containers
 
 - The client container `rag-cli`'s main running script, `app.py`, is configured to allow parameters to be fed in for specific behaviors.
     - `-i` or `--do-ingestion`, if present, will tell the script to take the cached web scraping data, and chunk, embed, and push the data to the RAG database (which will also be cleared beforehand)
     - `-s` or `--scrape-url` with a string url like `https://harrisburg.psu.edu/counseling-psychological-services` will tell the program to scrape data from the website specified and all subdomains, and also run the ingestion process described above with the new data. 
     - Currently the only way to feed in these flags is from inside the `rag-cli` container, but that will be resolved later on in development.
+    - **Note**: Not all of the variables and controls are currently available from the `.env` or the main variables declaration in `app.py`.
+        - Support for this will be added later on.
 
 
 ## PostgreSQL database commands
